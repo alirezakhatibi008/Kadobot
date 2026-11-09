@@ -436,11 +436,28 @@ export default function Home() {
   const [selectedGiftPerson, setSelectedGiftPerson] = useState<Person | null>(null);
   const [giftLoading, setGiftLoading] = useState(false);
   const [giftProducts, setGiftProducts] = useState<any[]>([]);
+  const [giftCurrentPage, setGiftCurrentPage] = useState(1);
+
+const giftProductsPerPage = 8;
+
+const giftTotalPages = Math.ceil(
+  giftProducts.length / giftProductsPerPage
+);
+
+const giftStartIndex =
+  (giftCurrentPage - 1) * giftProductsPerPage;
+
+const giftVisibleProducts = giftProducts.slice(
+  giftStartIndex,
+  giftStartIndex + giftProductsPerPage
+);
   const [giftError, setGiftError] = useState("");
   const [giftOptionsOpen, setGiftOptionsOpen] = useState(false);
 const [giftBudget, setGiftBudget] = useState("");
 const [giftStyle, setGiftStyle] = useState("");
 const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
+const [giftBudgetExpandPending, setGiftBudgetExpandPending] = useState(false);
+const [giftBudgetExpanded, setGiftBudgetExpanded] = useState(false);
 
   const [personForm, setPersonForm] = useState({
     name: "",
@@ -659,6 +676,7 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
     setGiftLoading(false);
     setGiftError("");
     setGiftProducts([]);
+    setGiftCurrentPage(1);
 
     setGiftBudget("");
     setGiftStyle("");
@@ -668,7 +686,9 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
   };
 
   // جست‌وجوی محصولات پیشنهادی
-  const searchGiftProducts = async () => {
+  const searchGiftProducts = async (
+  expandBudget = giftBudgetExpanded,
+) => {
     const person = selectedGiftPerson;
 
     if (!person) {
@@ -676,11 +696,17 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
       return;
     }
 
-    setGiftOptionsOpen(false);
-    setGiftResultsOpen(true);
-    setGiftLoading(true);
-    setGiftError("");
-    setGiftProducts([]);
+   setGiftOptionsOpen(false);
+setGiftResultsOpen(true);
+setGiftLoading(true);
+setGiftError("");
+setGiftProducts([]);
+setGiftCurrentPage(1);
+
+if (!expandBudget) {
+  setGiftBudgetExpanded(false);
+  setGiftBudgetExpandPending(false);
+}
 
     const interestSearchMap: Record<string, string[]> = {
       "تکنولوژی و گجت": ["گجت هوشمند", "لوازم جانبی موبایل"],
@@ -730,13 +756,60 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
     }
 
     try {
-      const params = new URLSearchParams();
+     const params = new URLSearchParams();
 
-      uniqueQueries.forEach((query) => {
-        params.append("q", query);
-      });
+uniqueQueries.forEach((query) => {
+  params.append("q", query);
+});
 
-      params.set("stores", "digikala");
+params.set("stores", "digikala");
+
+// تعیین محدوده بودجه بر اساس انتخاب کاربر
+let minPrice = 0;
+let maxPrice = 0;
+
+switch (giftBudget) {
+  case "under1":
+    minPrice = 0;
+    maxPrice = expandBudget ? 1_300_000 : 1_000_000;
+    break;
+
+  case "1to3":
+    minPrice = 1_000_000;
+    maxPrice = expandBudget ? 3_900_000 : 3_000_000;
+    break;
+
+  case "3to5":
+    minPrice = 3_000_000;
+    maxPrice = expandBudget ? 6_500_000 : 5_000_000;
+    break;
+
+  case "5to10":
+    minPrice = 5_000_000;
+    maxPrice = expandBudget ? 13_000_000 : 10_000_000;
+    break;
+
+  case "above10":
+    minPrice = 10_000_000;
+    maxPrice = 1_000_000_000_000;
+    break;
+
+  case "custom": {
+    const amount = Number(giftBudgetCustom);
+
+    minPrice = Math.round(amount * 0.9);
+    maxPrice = Math.round(
+      amount * (expandBudget ? 1.4 : 1.1),
+    );
+    break;
+  }
+
+  default:
+    throw new Error("لطفاً بودجه هدیه را انتخاب کن.");
+}
+
+params.set("minPrice", String(minPrice));
+params.set("maxPrice", String(maxPrice));
 
       const response = await fetch(
         `/api/product-search?${params.toString()}`,
@@ -758,13 +831,18 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
         ? result.products
         : [];
 
-      setGiftProducts(products.slice(0, 8));
+      setGiftProducts(products.slice(0, 20));
 
       if (products.length === 0) {
-        setGiftError(
-          "با توجه به علاقه‌مندی‌های ثبت‌شده، در حال حاضر محصول تأییدشده‌ای پیدا نشد.",
-        );
-      }
+  setGiftBudgetExpandPending(true);
+  setGiftBudgetExpanded(false);
+  setGiftError(
+    "در بودجه انتخاب‌شده محصول تأییدشده‌ای پیدا نشد. آیا مایل هستی با بودجه بالاتر دوباره جست‌وجو کنیم؟",
+  );
+} else {
+  setGiftBudgetExpandPending(false);
+  setGiftBudgetExpanded(false);
+}
     } catch (error) {
       console.error("خطا در پیشنهاد هدیه:", error);
 
@@ -1298,25 +1376,176 @@ const [giftBudgetCustom, setGiftBudgetCustom] = useState("");
           <div className="max-h-[calc(90vh-85px)] overflow-y-auto p-5">
             {giftLoading ? (
               <div className="flex flex-col items-center justify-center py-14 text-center"><div className="mb-4 h-9 w-9 animate-spin rounded-full border-4 border-[#DCE9E1] border-t-[#173F40]"/><p className="text-sm font-bold text-[#35564B]">دارم هدیه‌های مناسب رو پیدا می‌کنم…</p><p className="mt-2 text-xs text-[#8A9A91]">ممکن است چند لحظه طول بکشد.</p></div>
-            ) : giftError ? (
-              <div className="rounded-2xl bg-[#FFF7F3] p-5 text-center text-sm leading-7 text-[#986A5B]">{giftError}</div>
-            ) : giftProducts.length === 0 ? (
-              <p className="py-10 text-center text-sm text-[#819087]">نتیجه‌ای برای نمایش وجود ندارد.</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {giftProducts.map((product, index) => (
-                  <article key={product.id ?? product.url ?? index} className="flex gap-3 rounded-2xl border border-[#E8EFEB] p-3">
-                    {product.image ? <img src={product.image} alt={product.title || ""} className="h-24 w-24 shrink-0 rounded-xl bg-gray-50 object-contain" /> : <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-[#F3F6F2] text-2xl">🎁</div>}
-                    <div className="min-w-0 flex-1"><h3 className="line-clamp-2 text-xs font-bold leading-6 text-[#354C43]">{product.title}</h3>{product.price != null && <p className="mt-2 text-xs font-black text-[#D66F91]">{persianNumber(Math.round(Number(product.price) / (product.currency === "IRR" ? 10 : 1)))} تومان</p>}<p className="mt-1 text-[10px] text-[#8A9A91]">دیجی‌کالا</p>{product.url && <a href={product.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-[11px] font-bold text-[#267C68] underline">مشاهده و خرید</a>}</div>
-                  </article>
-                ))}
-              </div>
+           ) : giftError ? (
+  <div className="rounded-2xl bg-[#FFF7F3] p-5 text-center text-sm leading-7 text-[#986A5B]">
+    <p>{giftError}</p>
+
+    {giftBudgetExpandPending && (
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <button
+          onClick={() => {
+            setGiftBudgetExpandPending(false);
+            setGiftBudgetExpanded(true);
+            setGiftError("");
+            searchGiftProducts(true);
+          }}
+          className="rounded-xl bg-[#173F40] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#245B58]"
+        >
+          بله، با بودجه بالاتر جست‌وجو کن
+        </button>
+
+        <button
+          onClick={() => {
+            setGiftBudgetExpandPending(false);
+            setGiftError("");
+          }}
+          className="rounded-xl border border-[#E8DCD5] bg-white px-5 py-3 text-xs font-bold text-[#986A5B] transition hover:bg-[#FFF1EA]"
+        >
+          فعلاً نه
+        </button>
+      </div>
+    )}
+  </div>
+) : giftProducts.length === 0 ? (
+  <p className="py-10 text-center text-sm text-[#819087]">
+    نتیجه‌ای برای نمایش وجود ندارد.
+  </p>
+) : (
+  <>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {giftVisibleProducts.map((product, index) => (
+        <article
+          key={product.id ?? product.url ?? index}
+          className="flex gap-3 rounded-2xl border border-[#E8EFEB] p-3"
+        >
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.title || ""}
+              className="h-24 w-24 shrink-0 rounded-xl bg-gray-50 object-contain"
+            />
+          ) : (
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-[#F3F6F2] text-2xl">
+              🎁
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 text-xs font-bold leading-6 text-[#354C43]">
+              {product.title}
+            </h3>
+
+            {product.price != null && (
+              <p className="mt-2 text-xs font-black text-[#D66F91]">
+                {persianNumber(
+                  Math.round(
+                    Number(product.price) /
+                      (product.currency === "IRR" ? 10 : 1),
+                  ),
+                )}{" "}
+                تومان
+              </p>
             )}
-            <div className="mt-5 flex justify-between gap-2"><button onClick={() => { setGiftResultsOpen(false); setGiftPersonPickerOpen(true); }} className="rounded-xl border border-[#DCE9E1] px-4 py-2.5 text-xs font-bold text-[#35564B]">انتخاب فرد دیگر</button><button onClick={() => setGiftResultsOpen(false)} className="rounded-xl bg-[#173F40] px-5 py-2.5 text-xs font-bold text-white">بستن</button></div>
+
+            <p className="mt-1 text-[10px] text-[#8A9A91]">
+              دیجی‌کالا
+            </p>
+
+            {product.url && (
+              <a
+                href={product.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex text-[11px] font-bold text-[#267C68] underline"
+              >
+                مشاهده و خرید
+              </a>
+            )}
           </div>
+        </article>
+      ))}
+    </div>
+
+    {giftTotalPages > 1 && (
+      <div className="mt-6 border-t border-[#E8EFEB] pt-5">
+        <p className="mb-4 text-center text-xs text-[#819087]">
+          نمایش {persianNumber(giftStartIndex + 1)} تا{" "}
+          {persianNumber(
+            Math.min(
+              giftStartIndex + giftProductsPerPage,
+              giftProducts.length,
+            ),
+          )}{" "}
+          از {persianNumber(giftProducts.length)} محصول
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            onClick={() =>
+              setGiftCurrentPage((page) => Math.max(1, page - 1))
+            }
+            disabled={giftCurrentPage === 1}
+            className="rounded-xl border border-[#DCE9E1] px-4 py-2 text-xs font-bold text-[#35564B] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            قبلی
+          </button>
+
+          {Array.from(
+            { length: giftTotalPages },
+            (_, index) => index + 1,
+          ).map((page) => (
+            <button
+              key={page}
+              onClick={() => setGiftCurrentPage(page)}
+              className={`h-9 min-w-9 rounded-xl px-3 text-xs font-bold transition ${
+                giftCurrentPage === page
+                  ? "bg-[#173F40] text-white"
+                  : "border border-[#DCE9E1] text-[#35564B] hover:bg-[#F3F6F2]"
+              }`}
+            >
+              {persianNumber(page)}
+            </button>
+          ))}
+
+          <button
+            onClick={() =>
+              setGiftCurrentPage((page) =>
+                Math.min(giftTotalPages, page + 1),
+              )
+            }
+            disabled={giftCurrentPage === giftTotalPages}
+            className="rounded-xl border border-[#DCE9E1] px-4 py-2 text-xs font-bold text-[#35564B] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            بعدی
+          </button>
         </div>
       </div>
     )}
+  </>
+)}
+
+<div className="mt-5 flex justify-between gap-2">
+  <button
+    onClick={() => {
+      setGiftResultsOpen(false);
+      setGiftPersonPickerOpen(true);
+    }}
+    className="rounded-xl border border-[#DCE9E1] px-4 py-2.5 text-xs font-bold text-[#35564B]"
+  >
+    انتخاب فرد دیگر
+  </button>
+
+  <button
+    onClick={() => setGiftResultsOpen(false)}
+    className="rounded-xl bg-[#173F40] px-5 py-2.5 text-xs font-bold text-white"
+  >
+    بستن
+  </button>
+</div>
+          </div>
+        </div>
+        </div>
+      )}
 
     <main className="min-h-screen overflow-x-hidden bg-[#FFF9F6] text-[#173F40]">
       {/* فرم افزودن و ویرایش */}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,32 +14,25 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
- const [messageType, setMessageType] = useState<"success" | "error" | "info">("info");
-const [showMessage, setShowMessage] = useState(false);
-useEffect(() => {
-  if (!message) return;
+  const [messageType, setMessageType] = useState<"success" | "error" | "info">("info");
 
-  setShowMessage(true);
+  useEffect(() => {
+    if (!message) return;
 
-  const hideTimer = window.setTimeout(() => {
-    setShowMessage(false);
-  }, 2000);
+    const hideTimer = window.setTimeout(() => {
+      setMessage("");
+    }, 2350);
 
-  const clearTimer = window.setTimeout(() => {
-    setMessage("");
-  }, 2350);
-
-  return () => {
-    window.clearTimeout(hideTimer);
-    window.clearTimeout(clearTimer);
-  };
-}, [message]);
+    return () => window.clearTimeout(hideTimer);
+  }, [message]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -84,6 +78,7 @@ useEffect(() => {
     setMessageType("success");
     setMessage("نام و نام خانوادگی با موفقیت ذخیره شد.");
   }
+
   async function changePassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
@@ -129,9 +124,68 @@ useEffect(() => {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+
     setMessageType("success");
     setMessage("رمز عبور با موفقیت تغییر کرد.");
   }
+
+  function PasswordEyeButton({
+    visible,
+    onClick,
+  }: {
+    visible: boolean;
+    onClick: () => void;
+  }) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={visible ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
+        title={visible ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
+        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 transition hover:text-[#0D3B40]"
+      >
+        {visible ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 3l18 18" />
+            <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+            <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.3 4.5 9 7-.3 1.1-1 2.3-2 3.3" />
+            <path d="M6.2 6.2C3.8 7.7 2.3 10 2 12c.7 2.5 4 7 10 7 1.2 0 2.3-.2 3.3-.6" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        )}
+      </button>
+    );
+  }
+
   if (loading) {
     return (
       <main
@@ -154,41 +208,43 @@ useEffect(() => {
         </button>
 
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-         {message && (
-  <div
-    role="alert"
-  className={`fixed right-5 top-5 z-50 w-[calc(100%-2.5rem)] max-w-md flex items-start gap-3 rounded-2xl border p-4 text-right shadow-lg animate-in slide-in-from-top-4 fade-in duration-300 ${
-      messageType === "success"
-        ? "border-[#BFE5CC] bg-[#EFF9F2] text-[#216C3C]"
-        : messageType === "error"
-        ? "border-[#F3C5C2] bg-[#FFF1F0] text-[#A52E29]"
-        : "border-[#F3DFB8] bg-[#FFF8EB] text-[#8B601A]"
-    }`}
-  >
-    <span className="mt-0.5 text-xl">
-      {messageType === "success"
-        ? "✓"
-        : messageType === "error"
-        ? "!"
-        : "i"}
-    </span>
+          {message && (
+            <div
+              role="alert"
+              className={`fixed right-5 top-5 z-50 flex w-[calc(100%-2.5rem)] max-w-md items-start gap-3 rounded-2xl border p-4 text-right shadow-lg animate-in slide-in-from-top-4 fade-in duration-300 ${
+                messageType === "success"
+                  ? "border-[#BFE5CC] bg-[#EFF9F2] text-[#216C3C]"
+                  : messageType === "error"
+                    ? "border-[#F3C5C2] bg-[#FFF1F0] text-[#A52E29]"
+                    : "border-[#F3DFB8] bg-[#FFF8EB] text-[#8B601A]"
+              }`}
+            >
+              <span className="mt-0.5 text-xl">
+                {messageType === "success"
+                  ? "✓"
+                  : messageType === "error"
+                    ? "!"
+                    : "i"}
+              </span>
 
-    <div className="flex-1">
-      <p className="text-sm font-extrabold">
-        {messageType === "success"
-          ? "عملیات موفق"
-          : messageType === "error"
-          ? "خطا در عملیات"
-          : "اطلاع‌رسانی"}
-      </p>
+              <div className="flex-1">
+                <p className="text-sm font-extrabold">
+                  {messageType === "success"
+                    ? "عملیات موفق"
+                    : messageType === "error"
+                      ? "خطا در عملیات"
+                      : "اطلاع‌رسانی"}
+                </p>
 
-      <p className="mt-1 text-sm leading-6">
-        {message}
-      </p>
-    </div>
-  </div>
-)}
-          <h1 className="text-2xl font-black text-[#0D3B40]">تنظیمات حساب</h1>
+                <p className="mt-1 text-sm leading-6">{message}</p>
+              </div>
+            </div>
+          )}
+
+          <h1 className="text-2xl font-black text-[#0D3B40]">
+            تنظیمات حساب
+          </h1>
+
           <p className="mt-2 text-sm text-gray-500">
             اطلاعات حساب کاربری خود را مدیریت کن.
           </p>
@@ -198,6 +254,7 @@ useEffect(() => {
               <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                 ایمیل حساب
               </label>
+
               <input
                 type="email"
                 value={email}
@@ -206,6 +263,7 @@ useEffect(() => {
                 autoComplete="off"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-left text-sm text-gray-500"
               />
+
               <p className="mt-2 text-xs text-gray-400">
                 ایمیل حساب فعلاً قابل تغییر نیست.
               </p>
@@ -215,6 +273,7 @@ useEffect(() => {
               <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                 نام
               </label>
+
               <input
                 type="text"
                 value={firstName}
@@ -228,6 +287,7 @@ useEffect(() => {
               <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                 نام خانوادگی
               </label>
+
               <input
                 type="text"
                 value={lastName}
@@ -245,6 +305,7 @@ useEffect(() => {
               {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
             </button>
           </form>
+
           <div className="mt-10 border-t border-gray-100 pt-8">
             <h2 className="text-lg font-black text-[#0D3B40]">
               تغییر رمز عبور
@@ -259,6 +320,7 @@ useEffect(() => {
                 <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                   رمز عبور فعلی
                 </label>
+
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? "text" : "password"}
@@ -268,13 +330,13 @@ useEffect(() => {
                     required
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 pl-12 text-sm outline-none transition focus:border-[#FF8A7A]"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                  >
-                    {showCurrentPassword ? "مخفی کردن" : "نمایش"}
-                  </button>
+
+                  <PasswordEyeButton
+                    visible={showCurrentPassword}
+                    onClick={() =>
+                      setShowCurrentPassword(!showCurrentPassword)
+                    }
+                  />
                 </div>
               </div>
 
@@ -282,6 +344,7 @@ useEffect(() => {
                 <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                   رمز عبور جدید
                 </label>
+
                 <div className="relative">
                   <input
                     type={showNewPassword ? "text" : "password"}
@@ -292,13 +355,11 @@ useEffect(() => {
                     required
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 pl-12 text-sm outline-none transition focus:border-[#FF8A7A]"
                   />
-                  <button
-                    type="button"
+
+                  <PasswordEyeButton
+                    visible={showNewPassword}
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                  >
-                    {showNewPassword ? "مخفی کردن" : "نمایش"}
-                  </button>
+                  />
                 </div>
               </div>
 
@@ -306,6 +367,7 @@ useEffect(() => {
                 <label className="mb-2 block text-sm font-bold text-[#0D3B40]">
                   تکرار رمز عبور جدید
                 </label>
+
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -316,13 +378,13 @@ useEffect(() => {
                     required
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 pl-12 text-sm outline-none transition focus:border-[#FF8A7A]"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                  >
-                    {showConfirmPassword ? "مخفی کردن" : "نمایش"}
-                  </button>
+
+                  <PasswordEyeButton
+                    visible={showConfirmPassword}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                  />
                 </div>
               </div>
 

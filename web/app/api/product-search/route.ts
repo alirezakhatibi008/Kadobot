@@ -118,6 +118,36 @@ export async function GET(request: NextRequest) {
   }
 
   const requestedStores = request.nextUrl.searchParams.get("stores");
+  const minPriceParam = request.nextUrl.searchParams.get("minPrice");
+const maxPriceParam = request.nextUrl.searchParams.get("maxPrice");
+
+let priceRange:
+  | { min: number; max: number }
+  | undefined;
+
+if (minPriceParam !== null || maxPriceParam !== null) {
+  const min = Number(minPriceParam);
+  const max = Number(maxPriceParam);
+
+  if (
+    !Number.isFinite(min) ||
+    !Number.isFinite(max) ||
+    min < 0 ||
+    max <= 0 ||
+    min > max
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "INVALID_PRICE_RANGE",
+        message: "بازه قیمت واردشده معتبر نیست.",
+      },
+      { status: 400 },
+    );
+  }
+
+  priceRange = { min, max };
+}
 
   const validStoreIds = ACTIVE_STORES.map((store) => store.id);
 
@@ -161,9 +191,10 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await searchProducts(
-      searchQueries,
-      selectedStores,
-    );
+  searchQueries,
+  selectedStores,
+  priceRange,
+);
 
     return NextResponse.json({
       ...result,

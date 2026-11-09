@@ -12,7 +12,49 @@ import { getDigikalaProduct } from "./providers/digikala";
 
 const MAX_QUERIES = 6;
 const MAX_PRODUCTS_PER_QUERY = 12;
-const MAX_FINAL_PRODUCTS = 8;
+const MAX_FINAL_PRODUCTS = 20;
+type PriceRange = {
+  min: number;
+  max: number;
+};
+
+function getProductPriceInToman(
+  product: ProductSearchResult,
+): number | null {
+  if (
+    !product.verified.price ||
+    product.price === null ||
+    !Number.isFinite(product.price) ||
+    product.price <= 0
+  ) {
+    return null;
+  }
+
+  if (product.currency === "IRR") {
+    return product.price / 10;
+  }
+
+  if (product.currency === "IRT") {
+    return product.price;
+  }
+
+  return null;
+}
+
+function filterProductsByBudget(
+  products: ProductSearchResult[],
+  priceRange: PriceRange,
+): ProductSearchResult[] {
+  return products.filter((product) => {
+    const price = getProductPriceInToman(product);
+
+    return (
+      price !== null &&
+      price >= priceRange.min &&
+      price <= priceRange.max
+    );
+  });
+}
 
 function normalizeText(value: string): string {
   return value
@@ -209,6 +251,7 @@ function selectDiverseProducts(
 export async function searchProducts(
   input: string | string[],
   selectedStores: ProductSource[] = ["digikala"],
+  priceRange?: PriceRange,
 ): Promise<ProductSearchResponse> {
   const queries = deduplicateQueries(
     Array.isArray(input) ? input : [input],
@@ -308,10 +351,16 @@ export async function searchProducts(
     }
   }
 
-  const finalProducts = selectDiverseProducts(
-    productsByQuery,
-    queries,
-  );
+ const filteredProductsByQuery = priceRange
+  ? productsByQuery.map((bucket) =>
+      filterProductsByBudget(bucket, priceRange),
+    )
+  : productsByQuery;
+
+const finalProducts = selectDiverseProducts(
+  filteredProductsByQuery,
+  queries,
+);
 
   return {
     success: sources.some((source) => source.success),
