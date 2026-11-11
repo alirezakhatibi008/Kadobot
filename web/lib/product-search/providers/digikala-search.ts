@@ -1,3 +1,4 @@
+
 type DigikalaSearchItem = {
   id: number;
   title_fa?: string;
@@ -84,7 +85,8 @@ function isRelevantProduct(
     normalizedTitle.includes(word),
   );
 
-  return matchedWords.length / queryWords.length >= 0.6;
+  // پذیرش تطابق حداقل ۵۰ درصدی
+  return matchedWords.length / queryWords.length >= 0.5;
 }
 
 async function fetchDigikalaSearchPage(
@@ -132,21 +134,25 @@ export async function searchDigikala(
   const seenProductIds = new Set<number>();
 
   let totalPages = MAX_PAGES;
+  let rawProducts = 0;
+  let invalidProducts = 0;
+  let invalidUrls = 0;
+  let irrelevantProducts = 0;
+  let duplicateProducts = 0;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     if (page > totalPages) break;
 
     const result = await fetchDigikalaSearchPage(query, page);
-
     const items = result?.data?.products;
 
     if (!Array.isArray(items)) {
-      if (page === 1) {
-        throw new Error("DIGIKALA_PRODUCTS_NOT_FOUND");
-      }
-
-      break;
+      throw new Error(
+        `DIGIKALA_INVALID_RESPONSE_PAGE_${page}`,
+      );
     }
+
+    rawProducts += items.length;
 
     const reportedTotalPages = result?.data?.pager?.total_pages;
 
@@ -160,16 +166,29 @@ export async function searchDigikala(
     for (const item of items) {
       if (
         typeof item.id !== "number" ||
-        typeof item.title_fa !== "string" ||
-        typeof item.url?.uri !== "string" ||
-        !item.url.uri.startsWith("/product/dkp-")
+        typeof item.title_fa !== "string"
       ) {
+        invalidProducts++;
         continue;
       }
 
-      if (seenProductIds.has(item.id)) continue;
+      if (
+        typeof item.url?.uri !== "string" ||
+        !item.url.uri.startsWith("/product/dkp-")
+      ) {
+        invalidUrls++;
+        continue;
+      }
 
-      if (!isRelevantProduct(item.title_fa, query)) continue;
+      if (seenProductIds.has(item.id)) {
+        duplicateProducts++;
+        continue;
+      }
+
+      if (!isRelevantProduct(item.title_fa, query)) {
+        irrelevantProducts++;
+        continue;
+      }
 
       seenProductIds.add(item.id);
       collectedProducts.push(item);
@@ -178,6 +197,19 @@ export async function searchDigikala(
     }
 
     if (collectedProducts.length >= MAX_PRODUCTS) break;
+  }
+
+  if (collectedProducts.length === 0) {
+    throw new Error(
+      [
+        "DIGIKALA_NO_ACCEPTED_PRODUCTS",
+        `raw=${rawProducts}`,
+        `invalid=${invalidProducts}`,
+        `invalidUrls=${invalidUrls}`,
+        `irrelevant=${irrelevantProducts}`,
+        `duplicates=${duplicateProducts}`,
+      ].join("_"),
+    );
   }
 
   return collectedProducts
