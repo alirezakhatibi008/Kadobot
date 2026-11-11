@@ -1693,76 +1693,136 @@ const handleGiftSearch = async () => {
       )}
 
       {/* نوار بالای صفحه */}
-      <header className="fixed inset-x-0 top-3 z-50 px-4 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-white/80 bg-white/65 px-5 py-3 shadow-[0_8px_35px_rgba(65,49,45,0.10)] backdrop-blur-2xl">
-          <a href="#" className="flex items-center gap-2">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF9A85] to-[#F36F78] text-white shadow-md shadow-rose-200">
-              <Icon name="gift" size={24} />
-            </div>
+<header className="fixed inset-x-0 top-3 z-50 px-4 sm:px-6">
+  <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-white/80 bg-white/65 px-5 py-3 shadow-[0_8px_35px_rgba(65,49,45,0.10)] backdrop-blur-2xl">
+    {/* لوگوی کادوبات */}
+    <a href="/" className="flex shrink-0 items-center gap-2">
 
-            <div>
-              <div className="text-xl font-black tracking-tight text-[#173F40]">
-                کادوبات
-              </div>
-              <div className="text-[10px] text-[#8C9F99]">
-                مناسبت به یاد، هدیه به‌جا
-              </div>
-            </div>
-          </a>
-
-          {isLoggedIn ? (
-            <div className="relative">
-              <button
-                onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-3 rounded-xl border border-[#F0E8E4] bg-white/80 px-3 py-2 transition hover:border-[#FFB3A5] hover:shadow-sm"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#D8C7FF] to-[#A995EE] text-sm font-black text-[#59458C]">
-                  ع
-                </div>
-
-                <div className="hidden text-right sm:block">
-                  <div className="text-xs font-extrabold text-[#173F40]">
-                    {userName || userEmail || "کاربر کادوبات"}
-                  </div>
-                </div>
-
-                <span className="text-[#8A9B97]">
-                  <Icon name="chevron" size={16} />
-                </span>
-              </button>
-
-              {profileOpen && (
-                <div className="absolute left-0 top-full mt-2 w-48 rounded-2xl border border-[#F0E8E4] bg-white p-2 shadow-xl">
-                  <button
-                    onClick={() => {
-                      setProfileOpen(false);
-                      window.location.href = "/settings";
-                    }}
-                    className="w-full rounded-xl bg-[#FFF6F1] px-3 py-3 text-right text-xs font-bold text-[#173F40] transition hover:bg-[#FFECE5]"
-                  >
-                    تنظیمات حساب
-                  </button>
-
-                  <button
-                    onClick={handleLogout}
-                    className="mt-1 w-full rounded-xl px-3 py-3 text-right text-xs font-bold text-rose-600 transition hover:bg-rose-50"
-                  >
-                    خروج از حساب
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <a
-              href="/signup"
-              className="flex items-center gap-2 rounded-xl bg-[#173F40] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#245B58]"
+      {/* آیکون جعبه هدیه رباتیک */}
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 400 400"
+          className="h-11 w-11"
+          role="img"
+          aria-label="KadoBot"
+        >
+          <defs>
+            <linearGradient
+              id="kadobotHeaderIconGrad"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
             >
-              <Icon name="login" size={16} />
-              ورود / ثبت‌نام
-            </a>
-          )}
+              <stop offset="0%" stopColor="#FF5E62" />
+              <stop offset="100%" stopColor="#FF9966" />
+            </linearGradient>
+          </defs>
+
+          <g transform="translate(50, 50)">
+            <path
+              d="M40 100 H260 V260 C260 276.569 246.569 290 230 290 H70 C53.4315 290 40 276.569 40 260 V100 Z"
+              fill="url(#kadobotHeaderIconGrad)"
+            />
+
+            <path
+              d="M20 70 H280 C291.046 70 300 78.9543 300 90 V100 C300 105.523 295.523 110 290 110 H10 C4.47715 110 0 105.523 0 100 V90 C0 78.9543 8.9543 70 20 70 Z"
+              fill="url(#kadobotHeaderIconGrad)"
+            />
+
+            <rect x="130" y="70" width="40" height="220" fill="white" opacity="0.9" />
+            <rect x="0" y="100" width="300" height="20" fill="white" opacity="0.9" />
+
+            <path
+              d="M150 70 C130 30 80 20 90 50 C95 65 130 75 150 70 Z"
+              fill="#FF5E62"
+            />
+            <path
+              d="M150 70 C170 30 220 20 210 50 C205 65 170 75 150 70 Z"
+              fill="#FF5E62"
+            />
+            <circle cx="150" cy="55" r="12" fill="white" />
+
+            <g transform="translate(90, 140)">
+              <rect x="0" y="0" width="120" height="50" rx="25" fill="#1A1A1A" />
+              <circle cx="36" cy="25" r="10" fill="#92EFFD" />
+              <circle cx="84" cy="25" r="10" fill="#92EFFD" />
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      {/* لوگوتایپ و شعار */}
+      <div className="flex shrink-0 flex-col items-start justify-center gap-1">
+        <div className="flex items-center gap-1 whitespace-nowrap">
+          <span className="bg-gradient-to-r from-[#FF5E62] via-[#FF9966] to-[#4E65FF] bg-clip-text text-[19px] font-black leading-none tracking-[1px] text-transparent">
+            KADOBOT
+          </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-[#4E65FF]" />
         </div>
-      </header>
+
+        <div className="whitespace-nowrap text-[10px] text-[#8C9F99]">
+          مناسبت به یاد، هدیه به‌جا
+        </div>
+      </div>
+    </a>
+
+    {/* بخش پروفایل و ورود */}
+    {isLoggedIn ? (
+      <div className="relative">
+        <button
+          onClick={() => setProfileOpen(!profileOpen)}
+          className="flex items-center gap-3 rounded-xl border border-[#F0E8E4] bg-white/80 px-3 py-2 transition hover:border-[#FFB3A5] hover:shadow-sm"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#D8C7FF] to-[#A995EE] text-sm font-black text-[#59458C]">
+            ع
+          </div>
+
+          <div className="hidden text-right sm:block">
+            <div className="text-xs font-extrabold text-[#173F40]">
+              {userName || userEmail || "کاربر کادوبات"}
+            </div>
+          </div>
+
+          <span className="text-[#8A9B97]">
+            <Icon name="chevron" size={16} />
+          </span>
+        </button>
+
+        {profileOpen && (
+          <div className="absolute left-0 top-full mt-2 w-48 rounded-2xl border border-[#F0E8E4] bg-white p-2 shadow-xl">
+            <button
+              onClick={() => {
+                setProfileOpen(false);
+                window.location.href = "/settings";
+              }}
+              className="w-full rounded-xl bg-[#FFF6F1] px-3 py-3 text-right text-xs font-bold text-[#173F40] transition hover:bg-[#FFECE5]"
+            >
+              تنظیمات حساب
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="mt-1 w-full rounded-xl px-3 py-3 text-right text-xs font-bold text-rose-600 transition hover:bg-rose-50"
+            >
+              خروج از حساب
+            </button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <a
+        href="/signup"
+        className="flex items-center gap-2 rounded-xl bg-[#173F40] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#245B58]"
+      >
+        <Icon name="login" size={16} />
+        ورود / ثبت‌نام
+      </a>
+    )}
+  </div>
+</header>
+
 
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6">
         {/* بنر اصلی */}
