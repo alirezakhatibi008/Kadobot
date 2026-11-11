@@ -1,15 +1,31 @@
+
 {
-  "name": "kadobot-deploy",
+  "name": "kadobot",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "web"
-  ],
   "scripts": {
-    "build": "cd web && npm run build",
-    "start": "cd web && npm run start"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
   },
-  "allowScripts": {
-    "protobufjs": true
+  "dependencies": {
+    "@google/genai": "^3.0.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-multi-date-picker": "^4.5.2",
+    "resend": "^6.37.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
