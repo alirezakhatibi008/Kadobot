@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  try {
-    const apiKey = process.env.GAPGPT_API_KEY;
+    try {
+      const apiKey = process.env.GAPGPT_API_KEY;
 
     if (!apiKey) {
       throw new Error("کلید API گپ‌جی‌پی‌تی در تنظیمات پروژه تعریف نشده است.");
