@@ -400,28 +400,39 @@ export async function searchProducts(
           productResults.flatMap((result) => result.products),
         );
 
-        const searchFailed = successfulSearches === 0;
-        const detailFailed =
-          totalLinks > 0 && productDiagnostics.received === 0;
+        
+const searchFailed = successfulSearches === 0;
+const detailFailed =
+  totalLinks > 0 && productDiagnostics.received === 0;
 
-        const sourceSuccess =
-          !searchFailed && !detailFailed && storeProducts.length > 0;
+const sourceSuccess =
+  !searchFailed && !detailFailed && storeProducts.length > 0;
 
-        sources.push({
-          store: store.id,
-          method,
-          success: sourceSuccess,
-          resultCount: storeProducts.length,
-          ...(!sourceSuccess
-            ? {
-                error: searchFailed
-                  ? "ALL_DIGIKALA_SEARCH_REQUESTS_FAILED"
-                  : detailFailed
-                    ? "ALL_DIGIKALA_PRODUCT_DETAIL_REQUESTS_FAILED"
-                    : "NO_DIGIKALA_PRODUCTS_FOUND",
-              }
-            : {}),
-        });
+const searchErrorDetails = searchDiagnostics
+  .filter((item) => !item.success)
+  .map(
+    (item) =>
+      `${item.query}: ${item.error ?? "UNKNOWN_ERROR"}`,
+  )
+  .join(" || ")
+  .slice(0, 1200);
+
+sources.push({
+  store: store.id,
+  method,
+  success: sourceSuccess,
+  resultCount: storeProducts.length,
+  ...(!sourceSuccess
+    ? {
+        error: searchFailed
+          ? `ALL_DIGIKALA_SEARCH_REQUESTS_FAILED: ${searchErrorDetails}`
+          : detailFailed
+            ? "ALL_DIGIKALA_PRODUCT_DETAIL_REQUESTS_FAILED"
+            : "NO_DIGIKALA_PRODUCTS_FOUND",
+      }
+    : {}),
+});
+
 
         console.info(
           "[KADOBOT][DIGIKALA][SEARCH_DIAGNOSTIC]",
