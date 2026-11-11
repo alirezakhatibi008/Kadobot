@@ -1,12 +1,13 @@
+
 {
-  "name": "web",
-  "version": "0.1.0",
+  "name": "kadobot",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@google/genai": "^3.0.0",
